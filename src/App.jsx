@@ -809,10 +809,6 @@ function App() {
             <Title order={2} className="outcome-title">
               What a good boy, quick someone ring Chloe
             </Title>
-            <Text className="outcome-copy">
-              The task has been smashed. Please react with completely reasonable
-              levels of noise.
-            </Text>
             <Button
               size="lg"
               color="brand"
@@ -1085,8 +1081,7 @@ function App() {
         <Box component="form" onSubmit={unlockAdmin}>
           <Stack gap="lg">
             <Text>
-              Enter the admin password to manage tasks and passes. The stored value
-              is hashed in local storage.
+              Enter the admin password to manage tasks and passes.
             </Text>
             <PasswordInput
               label="Password"
