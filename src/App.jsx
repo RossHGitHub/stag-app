@@ -34,23 +34,31 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { defaultTasks } from "./data/defaultTasks";
 import heroImage from "./img/Screenshot 2026-03-23 at 21.24.59.png";
+import jonathanMaxterImage from "./img/jonathan-maxter.png";
 import jonnySadImage from "./img/jonny-sad.png";
 import jonnySunglassesImage from "./img/jonny-sunglasses.png";
 
 const STORAGE_KEY = "stag-do-forfeit-frenzy";
 const ADMIN_PASSWORD_HASH_KEY = "stag-do-admin-password-hash";
+const TASK_DECK_VERSION = "2026-04-09-baxter-deck";
 const DEFAULT_ADMIN_PASSWORD_HASH =
   "db147973b597a971bae280e6ab2e1b82cc04353cb11d8ca43bdb5721316ba68c";
 const DEFAULT_PASSES = 5;
 
+function getDefaultTasks() {
+  return defaultTasks.map((task) => ({ ...task }));
+}
+
 function createInitialState() {
   return {
-    tasks: defaultTasks,
+    taskDeckVersion: TASK_DECK_VERSION,
+    tasks: getDefaultTasks(),
     passesLeft: DEFAULT_PASSES,
     currentTask: null,
     completedTaskIds: [],
     passedTaskIds: [],
     history: [],
+    maxterMilestoneAcknowledged: 0,
     summaryAcknowledgedAtResolvedCount: 0
   };
 }
@@ -114,13 +122,22 @@ function loadState() {
     }
 
     const parsed = JSON.parse(stored);
-    return {
+    const nextState = {
       ...createInitialState(),
-      ...parsed,
+      ...parsed
+    };
+
+    if (parsed.taskDeckVersion !== TASK_DECK_VERSION) {
+      return createInitialState();
+    }
+
+    return {
+      ...nextState,
+      taskDeckVersion: TASK_DECK_VERSION,
       tasks:
         Array.isArray(parsed.tasks) && parsed.tasks.length > 0
           ? parsed.tasks
-          : defaultTasks
+          : getDefaultTasks()
     };
   } catch (error) {
     console.error("Failed to load saved stag app state.", error);
@@ -132,7 +149,6 @@ function App() {
   const [state, setState] = useState(loadState);
   const [adminOpen, setAdminOpen] = useState(false);
   const [adminLoginOpen, setAdminLoginOpen] = useState(false);
-  const [adminUnlocked, setAdminUnlocked] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
   const [adminPasswordError, setAdminPasswordError] = useState("");
   const [authenticatingAdmin, setAuthenticatingAdmin] = useState(false);
@@ -140,6 +156,7 @@ function App() {
   const [celebrationOpen, setCelebrationOpen] = useState(false);
   const [passResult, setPassResult] = useState(null);
   const [taskRevealOpen, setTaskRevealOpen] = useState(false);
+  const [maxterOpen, setMaxterOpen] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftDescription, setDraftDescription] = useState("");
@@ -170,6 +187,7 @@ function App() {
       )
     : 0;
   const resolvedTaskCount = state.completedTaskIds.length + state.passedTaskIds.length;
+  const maxterMilestoneCount = Math.floor(resolvedTaskCount / 5);
   const allTasksResolved =
     state.tasks.length > 0 &&
     resolvedTaskCount === state.tasks.length &&
@@ -329,6 +347,7 @@ function App() {
     setCelebrationOpen(false);
     setPassResult(null);
     setTaskRevealOpen(false);
+    setMaxterOpen(false);
     setSummaryOpen(false);
   }
 
@@ -340,11 +359,13 @@ function App() {
       completedTaskIds: [],
       passedTaskIds: [],
       history: [],
+      maxterMilestoneAcknowledged: 0,
       summaryAcknowledgedAtResolvedCount: 0
     }));
     setCelebrationOpen(false);
     setPassResult(null);
     setTaskRevealOpen(false);
+    setMaxterOpen(false);
     setSummaryOpen(false);
   }
 
@@ -366,14 +387,30 @@ function App() {
     });
   }
 
+  function setTaskAsActive(taskId) {
+    updateState((current) => {
+      const nextTask = current.tasks.find((task) => task.id === taskId);
+
+      if (!nextTask) {
+        return current;
+      }
+
+      return {
+        ...current,
+        currentTask: nextTask,
+        completedTaskIds: current.completedTaskIds.filter((id) => id !== taskId),
+        passedTaskIds: current.passedTaskIds.filter((id) => id !== taskId),
+        history: [
+          { id: taskId, status: "revealed" },
+          ...current.history.filter((entry) => entry.id !== taskId)
+        ]
+      };
+    });
+  }
+
   function openAdminAccess() {
     setAdminPasswordError("");
-
-    if (adminUnlocked) {
-      setAdminOpen(true);
-      return;
-    }
-
+    setAdminPassword("");
     ensureAdminPasswordHash();
     setAdminLoginOpen(true);
   }
@@ -404,7 +441,6 @@ function App() {
         return;
       }
 
-      setAdminUnlocked(true);
       setAdminOpen(true);
       closeAdminLogin();
     } catch (error) {
@@ -424,6 +460,15 @@ function App() {
 
   useEffect(() => {
     if (
+      maxterMilestoneCount > 0 &&
+      maxterMilestoneCount > state.maxterMilestoneAcknowledged
+    ) {
+      setMaxterOpen(true);
+    }
+  }, [maxterMilestoneCount, state.maxterMilestoneAcknowledged]);
+
+  useEffect(() => {
+    if (
       allTasksResolved &&
       resolvedTaskCount > state.summaryAcknowledgedAtResolvedCount
     ) {
@@ -434,6 +479,19 @@ function App() {
     resolvedTaskCount,
     state.summaryAcknowledgedAtResolvedCount
   ]);
+
+  function closeMaxterModal() {
+    setMaxterOpen(false);
+    updateState((current) => ({
+      ...current,
+      maxterMilestoneAcknowledged: Math.max(
+        current.maxterMilestoneAcknowledged,
+        Math.floor(
+          (current.completedTaskIds.length + current.passedTaskIds.length) / 5
+        )
+      )
+    }));
+  }
 
   function closeSummary() {
     setSummaryOpen(false);
@@ -458,7 +516,6 @@ function App() {
             <div className="hero-layout">
               <Stack gap="sm" className="hero-copy-block">
                 <Group justify="space-between" align="flex-start" wrap="wrap">
-                 
                   <Button
                     leftSection={<IconLockCog size={18} />}
                     size="md"
@@ -475,7 +532,10 @@ function App() {
                   Shtaaag
                 </Title>
                 <Text className="hero-copy">
-                  <em> <strong>Baxter Bitch Brigade! </strong></em> Scroll down - randomly pull a task, and let the carnage ensue.
+                  <em>
+                    <strong>Baxter Bitch Brigade! </strong>
+                  </em>
+                  Scroll down - randomly pull a task, and let the carnage ensue.
                 </Text>
               </Stack>
 
@@ -489,42 +549,13 @@ function App() {
               </motion.div>
             </div>
 
-            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md" mt="xl">
-              <StatCard
-                icon={IconMask}
-                label="Tasks Left"
-                value={availableTasks.length + (state.currentTask ? 1 : 0)}
-                tone="pink"
-              />
-              <StatCard
-                icon={IconPlayerSkipForward}
-                label="Passes Left"
-                value={state.passesLeft}
-                tone="orange"
-              />
-              <StatCard
-                icon={IconConfetti}
-                label="Progress"
-                value={`${completionRate}%`}
-                tone="lime"
-              />
-            </SimpleGrid>
-
-            <Progress
-              value={completionRate}
-              size="xl"
-              radius="xl"
-              color="brand"
-              striped
-              animated
+            <Paper
+              className="feature-card current-task-card current-task-panel"
+              shadow="xl"
+              radius="30px"
+              p="xl"
               mt="xl"
-            />
-          </Paper>
-        </motion.div>
-
-        <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="xl">
-          <motion.div {...cardMotion} transition={{ delay: 0.08, duration: 0.45 }}>
-            <Card className="feature-card current-task-card" shadow="xl" radius="30px" p="xl">
+            >
               <Group justify="space-between" align="center">
                 <Title order={2}>Current Forfeit</Title>
                 <ThemeIcon size={52} radius="xl" className="icon-tile">
@@ -552,7 +583,7 @@ function App() {
                         {state.currentTask.description}
                       </Text>
 
-                      <Group mt="xl">
+                      <Group mt="xl" className="task-action-group">
                         <Button
                           size="lg"
                           color="teal"
@@ -607,7 +638,7 @@ function App() {
                 )}
               </AnimatePresence>
 
-              <Group mt="xl">
+              <Group mt="xl" className="task-action-group">
                 <Button
                   size="xl"
                   color="brand"
@@ -628,70 +659,101 @@ function App() {
                   Reveal Task
                 </Button>
               </Group>
-            </Card>
-          </motion.div>
+            </Paper>
 
-          <motion.div {...cardMotion} transition={{ delay: 0.16, duration: 0.45 }}>
-            <Card className="feature-card history-card" shadow="xl" radius="30px" p="xl">
-              <Group justify="space-between" align="center">
-                <Title order={2}>Night Log</Title>
-                <Badge variant="light" color="dark" size="lg" radius="xl">
-                  {historyLookup.length} events
-                </Badge>
-              </Group>
+            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md" mt="xl">
+              <StatCard
+                icon={IconMask}
+                label="Tasks Left"
+                value={availableTasks.length + (state.currentTask ? 1 : 0)}
+                tone="pink"
+              />
+              <StatCard
+                icon={IconPlayerSkipForward}
+                label="Passes Left"
+                value={state.passesLeft}
+                tone="orange"
+              />
+              <StatCard
+                icon={IconConfetti}
+                label="Progress"
+                value={`${completionRate}%`}
+                tone="lime"
+              />
+            </SimpleGrid>
 
-              <ScrollArea h={470} mt="lg" offsetScrollbars>
-                <Stack gap="md">
-                  <AnimatePresence>
-                    {historyLookup.length > 0 ? (
-                      historyLookup.map((entry, index) => (
-                        <motion.div
-                          key={`${entry.id}-${entry.status}-${index}`}
-                          initial={{ opacity: 0, x: 18 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -18 }}
-                          transition={{ duration: 0.25, delay: index * 0.04 }}
-                        >
-                          <Paper className={`history-item ${entry.status}`} radius="22px" p="md">
-                            <Group justify="space-between" align="flex-start">
-                              <Stack gap={4}>
-                                <Text fw={700}>{entry.task.title}</Text>
-                                <Text size="sm" c="dimmed">
-                                  {entry.task.description}
-                                </Text>
-                              </Stack>
-                              <Badge
-                                color={
-                                  entry.status === "completed"
-                                    ? "teal"
-                                    : entry.status === "passed"
-                                      ? "red"
-                                      : "brand"
-                                }
-                                variant="filled"
-                                radius="xl"
-                              >
-                                {entry.status}
-                              </Badge>
-                            </Group>
-                          </Paper>
-                        </motion.div>
-                      ))
-                    ) : (
-                      <Paper className="history-item empty" radius="22px" p="lg">
-                        <Text fw={700}>No chaos logged yet.</Text>
-                        <Text size="sm" c="dimmed" mt={6}>
-                          Once tasks are revealed, passed, or completed, the timeline
-                          will fill itself in.
-                        </Text>
-                      </Paper>
-                    )}
-                  </AnimatePresence>
-                </Stack>
-              </ScrollArea>
-            </Card>
-          </motion.div>
-        </SimpleGrid>
+            <Progress
+              value={completionRate}
+              size="xl"
+              radius="xl"
+              color="brand"
+              striped
+              animated
+              mt="xl"
+            />
+          </Paper>
+        </motion.div>
+
+        <motion.div {...cardMotion} transition={{ delay: 0.16, duration: 0.45 }}>
+          <Card className="feature-card history-card" shadow="xl" radius="30px" p="xl">
+            <Group justify="space-between" align="center">
+              <Title order={2}>Night Log</Title>
+              <Badge variant="light" color="dark" size="lg" radius="xl">
+                {historyLookup.length} events
+              </Badge>
+            </Group>
+
+            <ScrollArea h={470} mt="lg" offsetScrollbars>
+              <Stack gap="md">
+                <AnimatePresence>
+                  {historyLookup.length > 0 ? (
+                    historyLookup.map((entry, index) => (
+                      <motion.div
+                        key={`${entry.id}-${entry.status}-${index}`}
+                        initial={{ opacity: 0, x: 18 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -18 }}
+                        transition={{ duration: 0.25, delay: index * 0.04 }}
+                      >
+                        <Paper className={`history-item ${entry.status}`} radius="22px" p="md">
+                          <Group justify="space-between" align="flex-start">
+                            <Stack gap={4}>
+                              <Text fw={700}>{entry.task.title}</Text>
+                              <Text size="sm" c="dimmed">
+                                {entry.task.description}
+                              </Text>
+                            </Stack>
+                            <Badge
+                              color={
+                                entry.status === "completed"
+                                  ? "teal"
+                                  : entry.status === "passed"
+                                    ? "red"
+                                    : "brand"
+                              }
+                              variant="filled"
+                              radius="xl"
+                            >
+                              {entry.status}
+                            </Badge>
+                          </Group>
+                        </Paper>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <Paper className="history-item empty" radius="22px" p="lg">
+                      <Text fw={700}>No chaos logged yet.</Text>
+                      <Text size="sm" c="dimmed" mt={6}>
+                        Once tasks are revealed, passed, or completed, the timeline
+                        will fill itself in.
+                      </Text>
+                    </Paper>
+                  )}
+                </AnimatePresence>
+              </Stack>
+            </ScrollArea>
+          </Card>
+        </motion.div>
       </Stack>
 
       <Modal
@@ -706,31 +768,43 @@ function App() {
         classNames={{ content: "confirm-modal" }}
       >
         {confirmState && (
-          <Stack gap="lg">
-            <Title order={3}>{confirmState.title}</Title>
-            <Text>{confirmState.message}</Text>
-            <Group grow>
-              <Button
-                variant="default"
-                size="md"
-                onClick={closeConfirmation}
-                className="confirm-button"
-              >
-                Cancel
-              </Button>
-              <Button
-                size="md"
-                color={confirmState.confirmColor}
-                className="confirm-button"
-                onClick={() => {
-                  confirmState.onConfirm();
-                  closeConfirmation();
-                }}
-              >
-                {confirmState.confirmLabel}
-              </Button>
-            </Group>
-          </Stack>
+          <Box className="modal-body-shell">
+            <ActionIcon
+              variant="light"
+              radius="xl"
+              size="lg"
+              className="modal-corner-close"
+              onClick={closeConfirmation}
+              aria-label="Close modal"
+            >
+              <IconX size={18} />
+            </ActionIcon>
+            <Stack gap="lg">
+              <Title order={3}>{confirmState.title}</Title>
+              <Text>{confirmState.message}</Text>
+              <Group grow>
+                <Button
+                  variant="default"
+                  size="md"
+                  onClick={closeConfirmation}
+                  className="confirm-button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="md"
+                  color={confirmState.confirmColor}
+                  className="confirm-button"
+                  onClick={() => {
+                    confirmState.onConfirm();
+                    closeConfirmation();
+                  }}
+                >
+                  {confirmState.confirmLabel}
+                </Button>
+              </Group>
+            </Stack>
+          </Box>
         )}
       </Modal>
 
@@ -748,6 +822,16 @@ function App() {
       >
         {state.currentTask && (
           <motion.div {...outcomeModalMotion} className="outcome-shell task-reveal-shell">
+            <ActionIcon
+              variant="light"
+              radius="xl"
+              size="lg"
+              className="modal-corner-close"
+              onClick={() => setTaskRevealOpen(false)}
+              aria-label="Close modal"
+            >
+              <IconX size={18} />
+            </ActionIcon>
             <Stack gap="lg" p="xl" className="outcome-content task-reveal-content">
               <Badge size="lg" radius="xl" variant="light" className="outcome-badge">
                 Fresh Forfeit
@@ -783,6 +867,16 @@ function App() {
         classNames={{ content: "outcome-modal celebration-modal" }}
       >
         <motion.div {...outcomeModalMotion} className="outcome-shell celebration-shell">
+          <ActionIcon
+            variant="light"
+            radius="xl"
+            size="lg"
+            className="modal-corner-close"
+            onClick={() => setCelebrationOpen(false)}
+            aria-label="Close modal"
+          >
+            <IconX size={18} />
+          </ActionIcon>
           <div className="confetti-burst" aria-hidden="true">
             {Array.from({ length: 22 }).map((_, index) => (
               <span
@@ -822,6 +916,58 @@ function App() {
       </Modal>
 
       <Modal
+        opened={maxterOpen}
+        onClose={closeMaxterModal}
+        centered
+        zIndex={455}
+        withCloseButton={false}
+        radius="30px"
+        padding={0}
+        overlayProps={{ blur: 7, opacity: 0.72 }}
+        classNames={{ content: "outcome-modal maxter-modal" }}
+      >
+        <motion.div {...outcomeModalMotion} className="outcome-shell maxter-shell">
+          <div className="maxter-sparkles" aria-hidden="true">
+            {Array.from({ length: 18 }).map((_, index) => (
+              <span
+                key={`maxter-sparkle-${index}`}
+                className={`maxter-sparkle sparkle-${(index % 6) + 1}`}
+                style={{
+                  left: `${(index * 11) % 100}%`,
+                  top: `${10 + ((index * 7) % 78)}%`,
+                  animationDelay: `${index * 0.15}s`
+                }}
+              />
+            ))}
+          </div>
+
+          <Stack gap="lg" p="xl" className="outcome-content maxter-content">
+            <div className="outcome-photo-frame maxter-photo-frame">
+              <img
+                src={jonathanMaxterImage}
+                alt="Jonathan MAXTER"
+                className="outcome-photo maxter-photo"
+              />
+            </div>
+            <Title order={1} className="maxter-title">
+              Jonathan MAXTER
+            </Title>
+            <Text className="maxter-copy">
+              OOOOWEEEE Time to down your drink you big tall drink of piss
+            </Text>
+            <Button
+              size="lg"
+              color="pink"
+              className="action-button outcome-button maxter-button"
+              onClick={closeMaxterModal}
+            >
+              Slay
+            </Button>
+          </Stack>
+        </motion.div>
+      </Modal>
+
+      <Modal
         opened={Boolean(passResult)}
         onClose={() => setPassResult(null)}
         centered
@@ -834,6 +980,16 @@ function App() {
       >
         {passResult && (
           <motion.div {...outcomeModalMotion} className="outcome-shell pass-shell">
+            <ActionIcon
+              variant="light"
+              radius="xl"
+              size="lg"
+              className="modal-corner-close"
+              onClick={() => setPassResult(null)}
+              aria-label="Close modal"
+            >
+              <IconX size={18} />
+            </ActionIcon>
             <Stack gap="lg" p="xl" className="outcome-content">
               <div className="outcome-photo-frame">
                 <img
@@ -876,6 +1032,16 @@ function App() {
         classNames={{ content: "outcome-modal summary-modal" }}
       >
         <motion.div {...outcomeModalMotion} className="outcome-shell summary-shell">
+          <ActionIcon
+            variant="light"
+            radius="xl"
+            size="lg"
+            className="modal-corner-close"
+            onClick={closeSummary}
+            aria-label="Close modal"
+          >
+            <IconX size={18} />
+          </ActionIcon>
           <Stack gap="lg" p="xl" className="outcome-content">
             <Badge size="lg" radius="xl" variant="light" className="outcome-badge">
               Night Summary
@@ -991,20 +1157,58 @@ function App() {
                 {state.tasks.map((task, index) => (
                   <Paper key={task.id} className="task-list-item" radius="20px" p="md">
                     <Stack gap="sm">
-                      <Group justify="space-between" align="center" wrap="nowrap">
-                        <Badge variant="light" color="brand" radius="xl">
-                          Task {index + 1}
-                        </Badge>
-                        <ActionIcon
-                          color="red"
-                          variant="light"
-                          size="lg"
-                          radius="xl"
-                          onClick={() => removeTask(task.id)}
-                          aria-label={`Remove ${task.title}`}
-                        >
-                          <IconTrash size={18} />
-                        </ActionIcon>
+                      <Group justify="space-between" align="center" wrap="wrap">
+                        <Group gap="xs" className="admin-task-badges">
+                          <Badge variant="light" color="brand" radius="xl">
+                            Task {index + 1}
+                          </Badge>
+                          {state.currentTask?.id === task.id ? (
+                            <Badge variant="filled" color="teal" radius="xl">
+                              Active
+                            </Badge>
+                          ) : null}
+                          {state.completedTaskIds.includes(task.id) ? (
+                            <Badge variant="light" color="teal" radius="xl">
+                              Completed
+                            </Badge>
+                          ) : null}
+                          {state.passedTaskIds.includes(task.id) ? (
+                            <Badge variant="light" color="red" radius="xl">
+                              Passed
+                            </Badge>
+                          ) : null}
+                        </Group>
+                        <Group gap="xs" className="admin-task-actions">
+                          <Button
+                            size="xs"
+                            variant="default"
+                            disabled={state.currentTask?.id === task.id}
+                            onClick={() =>
+                              openConfirmation({
+                                title: "Set this as the active task?",
+                                message: state.currentTask
+                                  ? `This will replace "${state.currentTask.title}" as the live task and put it back into the open pool.`
+                                  : `This will make "${task.title}" the live task.`,
+                                confirmLabel: "Set active task",
+                                confirmColor: "brand",
+                                onConfirm: () => setTaskAsActive(task.id)
+                              })
+                            }
+                            className="task-admin-button"
+                          >
+                            Set Active
+                          </Button>
+                          <ActionIcon
+                            color="red"
+                            variant="light"
+                            size="lg"
+                            radius="xl"
+                            onClick={() => removeTask(task.id)}
+                            aria-label={`Remove ${task.title}`}
+                          >
+                            <IconTrash size={18} />
+                          </ActionIcon>
+                        </Group>
                       </Group>
                       <TextInput
                         label="Title"

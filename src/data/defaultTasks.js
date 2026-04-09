@@ -1,122 +1,194 @@
 export const defaultTasks = [
   {
     id: "task-1",
-    title: "Pub Bard",
-    description:
-      "Ask three strangers to give you a random word each, then perform a dramatic 20-second poem using all three words."
+    title: "Barefoot Baxter",
+    description: "Take your socks off until your drink is finished"
   },
   {
     id: "task-2",
-    title: "Human Statue",
-    description:
-      "Politely ask a stranger to choose a pose, then hold that pose in public for a full 45 seconds without breaking character."
+    title: "Please sir, can I have a sip",
+    description: "Go and ask a stranger for permission to drink your drink"
   },
   {
     id: "task-3",
-    title: "Compliment Speedrun",
-    description:
-      "Give five different strangers an over-the-top but sincere compliment in under three minutes."
+    title: "Push it real good",
+    description: "20 Press ups"
   },
   {
     id: "task-4",
-    title: "Lost Tourist",
-    description:
-      "Ask a stranger for directions to a completely made-up place, then thank them as if they just saved your weekend."
+    title: "America's Ass",
+    description: 'Stand up and shout "Avengers Assemble"'
   },
   {
     id: "task-5",
-    title: "Dance Inspector",
+    title: "Excuse me this is what I ordered",
     description:
-      "Ask two strangers to rate your best dance move out of 10, then improve it based on their feedback."
+      'Go and tell one of the bar staff you asked for a beer. When they point out you have a beer say "I know", give them a thumbs up and walk away'
   },
   {
     id: "task-6",
-    title: "Awkward Interview",
-    description:
-      "Find a willing stranger and ask them to interview you for the role of 'World's Most Questionable Stag'."
+    title: "Yes Daddy",
+    description: 'Loudly say "Daddy Likey" every time you have a drink'
   },
   {
     id: "task-7",
-    title: "Fake Celebrity",
+    title: "Terry loves Yoghurt",
     description:
-      "Ask a stranger to take a photo of you while you pose like a celebrity being chased by paparazzi."
+      "Refer to yourself only in the third person until your drink is finished"
   },
   {
     id: "task-8",
-    title: "Public Apology",
-    description:
-      "Deliver a heartfelt apology to a lamppost or bin while at least one stranger is watching."
+    title: "Catwalk",
+    description: "Ask a stranger to rate your outfit from 1-10"
   },
   {
     id: "task-9",
-    title: "Relationship Guru",
-    description:
-      "Ask a stranger for one piece of marriage advice, then repeat it back like it is sacred ancient wisdom."
+    title: "Wrestlemania",
+    description: "Arm wrestle someone, literally anyone who agrees to"
   },
   {
     id: "task-10",
-    title: "Mime Emergency",
+    title: "This is the skin of a killer",
     description:
-      "Communicate with your group for one full minute using only mime while a stranger judges whether you deserve applause."
+      "Ask a group of strangers if they're team Edward or team Jacob"
   },
   {
     id: "task-11",
-    title: "Fashion Critic",
-    description:
-      "Ask a stranger to score your outfit, then strut five paces like you're closing a runway show."
+    title: "The Sealion",
+    description: "See how many beermats you can balance on your nose"
   },
   {
     id: "task-12",
-    title: "Voice Note Legend",
+    title: "This is the Greatest Show",
     description:
-      "Record a 15-second motivational speech to your future married self while speaking in your most dramatic movie-trailer voice."
+      "At some point during your drink burst into your favourite Disney song"
   },
   {
     id: "task-13",
-    title: "Hen Party Energy",
-    description:
-      "Ask two strangers to help you invent a ridiculous wedding hashtag, then announce it to your group like it's official."
+    title: "Mr Worldwide",
+    description: "I think we'd all like to hear your best Pitbull impression"
   },
   {
     id: "task-14",
-    title: "Serenade Request",
-    description:
-      "Politely ask a stranger to name a song, then sing one line of it as passionately as possible."
+    title: "The Time of my Life",
+    description: "Attempt the dirty dancing lift with a willing volunteer"
   },
   {
     id: "task-15",
-    title: "Confused Best Man",
+    title: "Unbelievable Jeff",
     description:
-      "Ask a stranger for advice on how to give a wedding speech when you know absolutely nothing about the groom."
+      "in the style of a sport commentator of your choice, narrate the group activity for the duration of your drink"
   },
   {
     id: "task-16",
-    title: "Invisible Dog Walker",
+    title: "Heeeeey Macarena",
     description:
-      "Walk an invisible dog for 60 seconds and ask a stranger what breed they think it is."
+      "do the Macarena, there will be no musical accompaniment unless you can convince someone to sing the tune for you"
   },
   {
     id: "task-17",
-    title: "Chaotic Toast",
-    description:
-      "Raise an imaginary glass and give a public toast to something absurd chosen by a stranger."
+    title: "Formation Lap",
+    description: "warm up those tyres with a few full laps of the pub"
   },
   {
     id: "task-18",
-    title: "Name Game",
+    title: "Driver Briefing",
     description:
-      "Ask three strangers what your stag nickname should be tonight, then introduce yourself to the group using the winning name."
+      "explain to the group your tactics and and plan for approaching this drink"
   },
   {
     id: "task-19",
-    title: "Slow-Mo Entrance",
-    description:
-      "Do a five-second slow-motion entrance into the next venue while your group hypes you up like a prize fighter."
+    title: "No hands? No problem",
+    description: "take your first 3 sips without using your hands"
   },
   {
     id: "task-20",
-    title: "Emergency Confidence Coach",
+    title: "Just Checking",
+    description: 'before every sip, examine your drink, nod and say "yep"'
+  },
+  {
+    id: "task-21",
+    title: "Lost Property",
     description:
-      "Ask a stranger to teach you the coolest way to stand for a photo, then copy it immediately."
+      "ask someone (not one of us) if they've seen your drink while holding it"
+  },
+  {
+    id: "task-22",
+    title: "Flamingo",
+    description: "stand on one leg for the duration of the drink"
+  },
+  {
+    id: "task-23",
+    title: "Secret Swiftie",
+    description: "name 10 Taylor Swift songs in 30 seconds"
+  },
+  {
+    id: "task-24",
+    title: "Bad babysitter",
+    description:
+      `Ask a stranger if they'd have a problem with you 'theoretically' babysitting their baby... "theoretically"`
+  },
+  {
+    id: "task-25",
+    title: "Excuse me",
+    description:
+      "Pick up your chair and do a lap of the pub whilst holding it, squeezing through the smallest gaps possible while consistently proclaiming 'entschuldigung'"
+  },
+  {
+    id: "task-26",
+    title: "Cheese",
+    description:
+      "Stop a stranger and tell them you're a professional street photographer and you'd love to take their photo. If they say yes, you have to take their photo and refuse to show them"
+  },
+  {
+    id: "task-27",
+    title: "Double Bubble",
+    description:
+      "Down yours, and Steven Barnes' drink (you might have to buy him another one)."
+  },
+  {
+    id: "task-28",
+    title: "Suicide shot",
+    description: "Salt up the nose, neck the tequila, lime in the eye"
+  },
+  {
+    id: "task-29",
+    title: "Keep it to yourself mate",
+    description:
+      'When you next go to the toilet, stand up from the table and proclaim loudly "right, time for a wank"'
+  },
+  {
+    id: "task-30",
+    title: "Eyes up, straight face",
+    description:
+      "Immediately set a timer for 3 minutes and don't laugh in that duration. If you laugh, you have to down your drink"
+  },
+  {
+    id: "task-31",
+    title: "Sprechen Deutsch",
+    description:
+      "Hope you've been practicing, go and order something from the bar in fluent german"
+  },
+  {
+    id: "task-32",
+    title: "Who's a good boy?",
+    description: "sit on the floor every time you want to take a drink"
+  },
+  {
+    id: "task-33",
+    title: "The Influencer",
+    description: "record a 60 second vlog as if you're a world famous Tiktoker"
+  },
+  {
+    id: "task-34",
+    title: "Holy Father hear our prayers",
+    description:
+      "lead the group in a loud and heartfelt prayer thanking the lord for these bountiful pints that sit before us, amen"
+  },
+  {
+    id: "task-35",
+    title: "The Roast of Jonathan Baxter(s friends)",
+    description:
+      "One by one roast each member of the group, for every roast that doesn't get a laugh take a drink"
   }
 ];
